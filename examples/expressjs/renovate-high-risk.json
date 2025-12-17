@@ -1,0 +1,9 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "High-risk project: Target develop branch for safety",
+  "extends": [
+    "github>YOUR_USERNAME/devops//renovate/base",
+    "github>YOUR_USERNAME/devops//renovate/expressjs"
+  ],
+  "baseBranches": ["develop"]
+}

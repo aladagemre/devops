@@ -1,0 +1,154 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Base Renovate configuration - shared settings for scheduling, stability, and noise reduction",
+
+  "extends": [
+    "config:recommended"
+  ],
+
+  "timezone": "Europe/Istanbul",
+
+  "schedule": [
+    "after 9am and before 11am every saturday"
+  ],
+
+  "prCreation": "not-pending",
+
+  "stabilityDays": 3,
+
+  "prConcurrentLimit": 5,
+
+  "prHourlyLimit": 0,
+
+  "semanticCommits": "enabled",
+
+  "commitMessagePrefix": "chore(deps):",
+
+  "commitMessageAction": "update",
+
+  "commitMessageTopic": "{{depName}}",
+
+  "commitMessageExtra": "to {{#if isPinDigest}}{{{newDigestShort}}}{{else}}{{#if isMajor}}v{{{newMajor}}}{{else}}{{#if isSingleVersion}}v{{{newVersion}}}{{else}}{{{newValue}}}{{/if}}{{/if}}{{/if}}",
+
+  "dependencyDashboard": true,
+
+  "dependencyDashboardTitle": "Dependency Dashboard",
+
+  "rebaseWhen": "behind-base-branch",
+
+  "ignorePresets": [
+    ":ignoreModulesAndTests"
+  ],
+
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/bower_components/**",
+    "**/vendor/**",
+    "**/__tests__/**",
+    "**/test/**",
+    "**/tests/**"
+  ],
+
+  "labels": [
+    "dependencies",
+    "renovate"
+  ],
+
+  "packageRules": [
+    {
+      "description": "Auto-merge patch updates after CI passes",
+      "matchUpdateTypes": ["patch", "digest"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash",
+      "ignoreTests": false,
+      "platformAutomerge": true,
+      "requiredStatusChecks": null
+    },
+    {
+      "description": "Auto-merge minor updates after CI passes",
+      "matchUpdateTypes": ["minor"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash",
+      "ignoreTests": false,
+      "platformAutomerge": true,
+      "requiredStatusChecks": null
+    },
+    {
+      "description": "Major updates require manual review",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update"],
+      "prPriority": 5
+    },
+    {
+      "description": "0.x versions are unstable - require manual review",
+      "matchCurrentVersion": "/^0/",
+      "automerge": false,
+      "labels": ["dependencies", "unstable-version"]
+    },
+    {
+      "description": "Group all patch updates together",
+      "groupName": "all patch dependencies",
+      "groupSlug": "all-patch",
+      "matchUpdateTypes": ["patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash",
+      "ignoreTests": false,
+      "platformAutomerge": true,
+      "requiredStatusChecks": null
+    },
+    {
+      "description": "Separate devDependencies from dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "labels": ["dependencies", "dev-dependencies"]
+    }
+  ],
+
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": [
+      "before 3am on the first day of the month"
+    ],
+    "commitMessageAction": "refresh",
+    "automerge": true,
+    "automergeType": "pr",
+    "requiredStatusChecks": null
+  },
+
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
+
+  "reviewersFromCodeOwners": true,
+
+  "assigneesFromCodeOwners": false,
+
+  "separateMajorMinor": true,
+
+  "separateMinorPatch": false,
+
+  "separateMultipleMajor": true,
+
+  "rangeStrategy": "bump",
+
+  "bumpVersion": null,
+
+  "enabledManagers": [
+    "npm",
+    "pip_requirements",
+    "pip_setup",
+    "poetry",
+    "pipenv",
+    "cargo",
+    "gomod",
+    "dockerfile",
+    "docker-compose",
+    "github-actions"
+  ]
+}

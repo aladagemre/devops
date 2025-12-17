@@ -1,0 +1,142 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Next.js/React specific Renovate configuration with smart grouping",
+
+
+  "packageRules": [
+    {
+      "description": "Group Next.js core packages",
+      "groupName": "Next.js core",
+      "matchPackagePatterns": [
+        "^next$",
+        "^@next/"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group React core packages",
+      "groupName": "React core",
+      "matchPackageNames": [
+        "react",
+        "react-dom"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group TypeScript packages",
+      "groupName": "TypeScript",
+      "matchPackagePatterns": [
+        "^typescript$",
+        "^@types/",
+        "^ts-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group ESLint packages and plugins",
+      "groupName": "ESLint and plugins",
+      "matchPackagePatterns": [
+        "^eslint",
+        "^@typescript-eslint/"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group testing libraries",
+      "groupName": "Testing libraries",
+      "matchPackagePatterns": [
+        "^@testing-library/",
+        "^jest",
+        "^@jest/",
+        "^vitest"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group TailwindCSS packages",
+      "groupName": "TailwindCSS",
+      "matchPackagePatterns": [
+        "^tailwindcss$",
+        "^@tailwindcss/",
+        "^postcss",
+        "^autoprefixer"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group build tools",
+      "groupName": "Build tools",
+      "matchPackageNames": [
+        "webpack",
+        "vite",
+        "turbo",
+        "tsup",
+        "esbuild",
+        "swc"
+      ],
+      "matchPackagePatterns": [
+        "^@swc/",
+        "^webpack-",
+        "^vite-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group UI component libraries",
+      "groupName": "UI libraries",
+      "matchPackagePatterns": [
+        "^@radix-ui/",
+        "^@headlessui/",
+        "^@heroicons/",
+        "^lucide-react"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group state management",
+      "groupName": "State management",
+      "matchPackageNames": [
+        "zustand",
+        "jotai",
+        "redux",
+        "react-redux",
+        "@reduxjs/toolkit"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group data fetching libraries",
+      "groupName": "Data fetching",
+      "matchPackageNames": [
+        "swr",
+        "@tanstack/react-query",
+        "axios"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Pin Next.js major versions - framework stability critical",
+      "matchPackageNames": ["next"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "next.js"]
+    },
+    {
+      "description": "Pin React major versions - breaking changes need review",
+      "matchPackageNames": ["react", "react-dom"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "react"]
+    }
+  ]
+}

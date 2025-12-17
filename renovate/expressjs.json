@@ -1,0 +1,115 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Express.js specific Renovate configuration",
+
+  "packageRules": [
+    {
+      "description": "Group Express core and middleware",
+      "groupName": "Express core",
+      "matchPackageNames": [
+        "express"
+      ],
+      "matchPackagePatterns": [
+        "^express-",
+        "^body-parser",
+        "^cookie-parser",
+        "^cors",
+        "^helmet",
+        "^morgan"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group authentication middleware",
+      "groupName": "Authentication",
+      "matchPackageNames": [
+        "passport",
+        "jsonwebtoken",
+        "bcrypt",
+        "bcryptjs"
+      ],
+      "matchPackagePatterns": [
+        "^passport-",
+        "^express-jwt"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group database clients",
+      "groupName": "Database clients",
+      "matchPackageNames": [
+        "mongoose",
+        "sequelize",
+        "typeorm",
+        "prisma",
+        "pg",
+        "mysql2",
+        "redis"
+      ],
+      "matchPackagePatterns": [
+        "^@prisma/"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group validation libraries",
+      "groupName": "Validation",
+      "matchPackageNames": [
+        "joi",
+        "yup",
+        "zod",
+        "express-validator"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group testing libraries",
+      "groupName": "Testing libraries",
+      "matchPackageNames": [
+        "jest",
+        "mocha",
+        "chai",
+        "supertest",
+        "sinon"
+      ],
+      "matchPackagePatterns": [
+        "^@jest/",
+        "^chai-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group TypeScript packages",
+      "groupName": "TypeScript",
+      "matchPackagePatterns": [
+        "^typescript$",
+        "^@types/",
+        "^ts-node"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group linting tools",
+      "groupName": "ESLint and plugins",
+      "matchPackagePatterns": [
+        "^eslint",
+        "^@typescript-eslint/"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Pin Express major versions - framework stability critical",
+      "matchPackageNames": ["express"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "express"]
+    }
+  ]
+}

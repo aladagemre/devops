@@ -1,0 +1,163 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Python (Django/FastAPI) specific Renovate configuration",
+
+  "packageRules": [
+    {
+      "description": "Group Django core packages",
+      "groupName": "Django core",
+      "matchPackageNames": [
+        "Django",
+        "django"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group Django extensions",
+      "groupName": "Django extensions",
+      "matchPackagePatterns": [
+        "^django-",
+        "^djangorestframework"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group FastAPI and dependencies",
+      "groupName": "FastAPI",
+      "matchPackageNames": [
+        "fastapi",
+        "uvicorn",
+        "starlette",
+        "pydantic"
+      ],
+      "matchPackagePatterns": [
+        "^pydantic-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group database drivers",
+      "groupName": "Database drivers",
+      "matchPackageNames": [
+        "psycopg2",
+        "psycopg2-binary",
+        "psycopg3",
+        "mysqlclient",
+        "pymongo",
+        "redis"
+      ],
+      "matchPackagePatterns": [
+        "^sqlalchemy"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group testing packages",
+      "groupName": "Python testing",
+      "matchPackageNames": [
+        "pytest",
+        "pytest-cov",
+        "pytest-django",
+        "pytest-asyncio",
+        "coverage",
+        "httpx"
+      ],
+      "matchPackagePatterns": [
+        "^pytest-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group linting and formatting tools",
+      "groupName": "Python linting",
+      "matchPackageNames": [
+        "black",
+        "flake8",
+        "pylint",
+        "mypy",
+        "ruff",
+        "isort"
+      ],
+      "matchPackagePatterns": [
+        "^flake8-",
+        "^pylint-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group Celery and task queue packages",
+      "groupName": "Task queues",
+      "matchPackageNames": [
+        "celery",
+        "kombu",
+        "amqp",
+        "redis"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group authentication packages",
+      "groupName": "Authentication",
+      "matchPackageNames": [
+        "PyJWT",
+        "python-jose",
+        "passlib",
+        "bcrypt"
+      ],
+      "matchPackagePatterns": [
+        "^django-allauth",
+        "^social-auth-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Pin Django major versions - breaking changes need review",
+      "matchPackageNames": ["Django", "django"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "django"]
+    },
+    {
+      "description": "Pin FastAPI major versions - API stability critical",
+      "matchPackageNames": ["fastapi"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "fastapi"]
+    },
+    {
+      "description": "Pydantic v2 was a major breaking change",
+      "matchPackageNames": ["pydantic"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "pydantic"]
+    }
+  ],
+
+  "pip_requirements": {
+    "fileMatch": [
+      "(^|/)requirements\\.txt$",
+      "(^|/)requirements[.-].*\\.txt$",
+      "(^|/)requirements/.*\\.txt$"
+    ]
+  },
+
+  "pip_setup": {
+    "fileMatch": [
+      "(^|/)setup\\.py$"
+    ]
+  },
+
+  "poetry": {
+    "fileMatch": [
+      "(^|/)pyproject\\.toml$"
+    ]
+  }
+}

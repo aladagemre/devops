@@ -1,0 +1,9 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Low-risk project: Target main branch for speed",
+  "extends": [
+    "github>YOUR_USERNAME/devops//renovate/base",
+    "github>YOUR_USERNAME/devops//renovate/python"
+  ],
+  "baseBranches": ["main"]
+}

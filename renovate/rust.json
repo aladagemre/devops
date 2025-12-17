@@ -1,0 +1,112 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Rust specific Renovate configuration",
+
+  "packageRules": [
+    {
+      "description": "Group async runtime packages",
+      "groupName": "Async runtime",
+      "matchPackageNames": [
+        "tokio",
+        "async-std",
+        "futures"
+      ],
+      "matchPackagePatterns": [
+        "^tokio-",
+        "^futures-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group web framework packages",
+      "groupName": "Web frameworks",
+      "matchPackageNames": [
+        "actix-web",
+        "axum",
+        "warp",
+        "rocket"
+      ],
+      "matchPackagePatterns": [
+        "^actix-",
+        "^axum-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group serialization packages",
+      "groupName": "Serialization",
+      "matchPackageNames": [
+        "serde",
+        "serde_json",
+        "serde_yaml",
+        "toml"
+      ],
+      "matchPackagePatterns": [
+        "^serde_"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group database clients",
+      "groupName": "Database clients",
+      "matchPackageNames": [
+        "sqlx",
+        "diesel",
+        "sea-orm",
+        "mongodb"
+      ],
+      "matchPackagePatterns": [
+        "^sqlx-",
+        "^diesel-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group HTTP clients",
+      "groupName": "HTTP clients",
+      "matchPackageNames": [
+        "reqwest",
+        "hyper",
+        "ureq"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group testing and dev tools",
+      "groupName": "Testing tools",
+      "matchPackageNames": [
+        "criterion",
+        "mockall",
+        "proptest",
+        "quickcheck"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group tracing and logging",
+      "groupName": "Logging",
+      "matchPackageNames": [
+        "tracing",
+        "log",
+        "env_logger"
+      ],
+      "matchPackagePatterns": [
+        "^tracing-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Major Rust dependency updates need careful review",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "rust"]
+    }
+  ]
+}

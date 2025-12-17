@@ -1,0 +1,101 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Go specific Renovate configuration",
+
+  "packageRules": [
+    {
+      "description": "Group web framework packages",
+      "groupName": "Web frameworks",
+      "matchPackagePatterns": [
+        "^github.com/gin-gonic/gin$",
+        "^github.com/labstack/echo",
+        "^github.com/gofiber/fiber",
+        "^github.com/gorilla/mux$"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group database drivers",
+      "groupName": "Database drivers",
+      "matchPackagePatterns": [
+        "^github.com/lib/pq$",
+        "^github.com/go-sql-driver/mysql$",
+        "^go.mongodb.org/mongo-driver",
+        "^gorm.io/gorm$",
+        "^gorm.io/driver/"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group testing packages",
+      "groupName": "Testing libraries",
+      "matchPackagePatterns": [
+        "^github.com/stretchr/testify",
+        "^github.com/golang/mock",
+        "^github.com/onsi/ginkgo",
+        "^github.com/onsi/gomega"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group logging packages",
+      "groupName": "Logging",
+      "matchPackagePatterns": [
+        "^github.com/sirupsen/logrus$",
+        "^go.uber.org/zap$",
+        "^github.com/rs/zerolog"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group validation packages",
+      "groupName": "Validation",
+      "matchPackagePatterns": [
+        "^github.com/go-playground/validator",
+        "^github.com/asaskevich/govalidator"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group configuration packages",
+      "groupName": "Configuration",
+      "matchPackagePatterns": [
+        "^github.com/spf13/viper$",
+        "^github.com/spf13/cobra$",
+        "^github.com/joho/godotenv"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group utility packages",
+      "groupName": "Utilities",
+      "matchPackagePatterns": [
+        "^github.com/google/uuid$",
+        "^golang.org/x/crypto",
+        "^golang.org/x/sync"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Major Go dependency updates need review",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "golang"]
+    }
+  ],
+
+  "gomod": {
+    "enabled": true
+  },
+
+  "postUpdateOptions": [
+    "gomodTidy"
+  ]
+}

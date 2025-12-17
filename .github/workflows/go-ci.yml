@@ -1,0 +1,137 @@
+name: Go CI
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        description: 'Go version to use'
+        required: false
+        type: string
+        default: '1.21'
+      working-directory:
+        description: 'Working directory for the project'
+        required: false
+        type: string
+        default: '.'
+      skip-tests:
+        description: 'Skip test execution'
+        required: false
+        type: boolean
+        default: false
+      skip-lint:
+        description: 'Skip golangci-lint'
+        required: false
+        type: boolean
+        default: false
+      skip-fmt:
+        description: 'Skip gofmt check'
+        required: false
+        type: boolean
+        default: false
+
+# Cancel in-progress runs for the same workflow and branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+
+    # Skip CI for documentation-only changes
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci skip]')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache-dependency-path: ${{ inputs.working-directory }}/go.sum
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ inputs.go-version }}-${{ hashFiles(format('{0}/go.sum', inputs.working-directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ inputs.go-version }}-
+
+      - name: Download dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: go mod download
+
+      - name: Verify dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: go mod verify
+
+      - name: Check formatting
+        if: ${{ !inputs.skip-fmt }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if [ -n "$(gofmt -s -l .)" ]; then
+            echo "Go files must be formatted with gofmt. Run: gofmt -s -w ."
+            gofmt -s -l .
+            exit 1
+          fi
+
+      - name: Run go vet
+        if: ${{ !inputs.skip-lint }}
+        working-directory: ${{ inputs.working-directory }}
+        run: go vet ./...
+
+      - name: Run golangci-lint
+        if: ${{ !inputs.skip-lint }}
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          working-directory: ${{ inputs.working-directory }}
+          args: --timeout=5m
+
+      - name: Build application
+        working-directory: ${{ inputs.working-directory }}
+        run: go build -v ./...
+
+      - name: Run tests with coverage
+        if: ${{ !inputs.skip-tests }}
+        working-directory: ${{ inputs.working-directory }}
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload coverage reports
+        if: ${{ !inputs.skip-tests }}
+        uses: codecov/codecov-action@v4
+        with:
+          file: ${{ inputs.working-directory }}/coverage.out
+          fail_ci_if_error: false
+        continue-on-error: true
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Run gosec security scanner
+        uses: securego/gosec@master
+        with:
+          args: '-no-fail -fmt json -out gosec-results.json ./...'
+
+      - name: Check for vulnerabilities
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./... || true

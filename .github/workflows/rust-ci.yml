@@ -1,0 +1,127 @@
+name: Rust CI
+
+on:
+  workflow_call:
+    inputs:
+      rust-version:
+        description: 'Rust version to use'
+        required: false
+        type: string
+        default: 'stable'
+      working-directory:
+        description: 'Working directory for the project'
+        required: false
+        type: string
+        default: '.'
+      skip-tests:
+        description: 'Skip test execution'
+        required: false
+        type: boolean
+        default: false
+      skip-clippy:
+        description: 'Skip Clippy linting'
+        required: false
+        type: boolean
+        default: false
+      skip-fmt:
+        description: 'Skip rustfmt check'
+        required: false
+        type: boolean
+        default: false
+
+# Cancel in-progress runs for the same workflow and branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+
+    # Skip CI for documentation-only changes
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci skip]')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ inputs.rust-version }}
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles(format('{0}/Cargo.lock', inputs.working-directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles(format('{0}/Cargo.lock', inputs.working-directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: ${{ inputs.working-directory }}/target
+          key: ${{ runner.os }}-cargo-build-${{ inputs.rust-version }}-${{ hashFiles(format('{0}/Cargo.lock', inputs.working-directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-${{ inputs.rust-version }}-
+
+      - name: Check formatting
+        if: ${{ !inputs.skip-fmt }}
+        working-directory: ${{ inputs.working-directory }}
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy
+        if: ${{ !inputs.skip-clippy }}
+        working-directory: ${{ inputs.working-directory }}
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Build project
+        working-directory: ${{ inputs.working-directory }}
+        run: cargo build --verbose
+
+      - name: Run tests
+        if: ${{ !inputs.skip-tests }}
+        working-directory: ${{ inputs.working-directory }}
+        run: cargo test --verbose
+
+      - name: Run doc tests
+        if: ${{ !inputs.skip-tests }}
+        working-directory: ${{ inputs.working-directory }}
+        run: cargo test --doc --verbose
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: Run security audit
+        working-directory: ${{ inputs.working-directory }}
+        run: cargo audit || true
+
+      - name: Check for outdated dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          cargo install cargo-outdated
+          cargo outdated || true

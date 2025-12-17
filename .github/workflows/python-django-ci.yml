@@ -1,0 +1,185 @@
+name: Django CI
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: 'Python version to use'
+        required: false
+        type: string
+        default: '3.11'
+      working-directory:
+        description: 'Working directory for the project'
+        required: false
+        type: string
+        default: '.'
+      requirements-file:
+        description: 'Path to requirements file'
+        required: false
+        type: string
+        default: 'requirements.txt'
+      skip-tests:
+        description: 'Skip test execution'
+        required: false
+        type: boolean
+        default: false
+      skip-lint:
+        description: 'Skip linting'
+        required: false
+        type: boolean
+        default: false
+      skip-migrations-check:
+        description: 'Skip Django migrations check'
+        required: false
+        type: boolean
+        default: false
+
+# Cancel in-progress runs for the same workflow and branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+
+    # Skip CI for documentation-only changes
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci skip]')
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+      DJANGO_SETTINGS_MODULE: config.settings
+      SECRET_KEY: test-secret-key-for-ci
+      DEBUG: 'False'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: 'pip'
+          cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.requirements-file }}
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ${{ inputs.requirements-file }}
+
+      - name: Run Black formatter check
+        if: ${{ !inputs.skip-lint }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if pip list | grep -q black; then
+            black --check .
+          else
+            echo "Black not installed, skipping format check"
+          fi
+
+      - name: Run Flake8 linting
+        if: ${{ !inputs.skip-lint }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if pip list | grep -q flake8; then
+            flake8 .
+          else
+            echo "Flake8 not installed, skipping lint check"
+          fi
+
+      - name: Run MyPy type checking
+        if: ${{ !inputs.skip-lint }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if pip list | grep -q mypy; then
+            mypy .
+          else
+            echo "MyPy not installed, skipping type check"
+          fi
+
+      - name: Check for missing migrations
+        if: ${{ !inputs.skip-migrations-check }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python manage.py makemigrations --check --dry-run --no-input
+
+      - name: Run Django system checks
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python manage.py check --deploy
+
+      - name: Run migrations
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python manage.py migrate --no-input
+
+      - name: Run tests with coverage
+        if: ${{ !inputs.skip-tests }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if pip list | grep -q pytest; then
+            pytest --cov --cov-report=term-missing
+          elif pip list | grep -q coverage; then
+            coverage run manage.py test
+            coverage report
+          else
+            python manage.py test
+          fi
+
+      - name: Collect static files
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python manage.py collectstatic --no-input --clear
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: 'pip'
+          cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.requirements-file }}
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ${{ inputs.requirements-file }}
+
+      - name: Run safety check for known vulnerabilities
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          pip install safety
+          safety check --json || true
+
+      - name: Run bandit security linter
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          pip install bandit
+          bandit -r . -f json || true
