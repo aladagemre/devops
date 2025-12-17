@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: YOUR_USERNAME/devops/.github/workflows/rust-ci.yml@main
+    uses: aladagemre/devops/.github/workflows/rust-ci.yml@main
     with:
       rust-version: 'stable'
       skip-tests: false

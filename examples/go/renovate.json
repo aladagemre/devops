@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>YOUR_USERNAME/devops//renovate/base",
-    "github>YOUR_USERNAME/devops//renovate/go"
+    "github>aladagemre/devops//renovate/base",
+    "github>aladagemre/devops//renovate/go"
   ]
 }

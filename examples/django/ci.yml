@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: YOUR_USERNAME/devops/.github/workflows/python-django-ci.yml@main
+    uses: aladagemre/devops/.github/workflows/python-django-ci.yml@main
     with:
       python-version: '3.11'
       requirements-file: 'requirements.txt'

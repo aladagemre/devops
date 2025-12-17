@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: YOUR_USERNAME/devops/.github/workflows/nextjs-ci.yml@main
+    uses: aladagemre/devops/.github/workflows/nextjs-ci.yml@main
     with:
       node-version: '20'
       skip-build-test: false
