@@ -1,0 +1,247 @@
+name: Python Package CI
+
+on:
+  workflow_call:
+    inputs:
+      python-versions:
+        description: 'JSON array of Python versions to test'
+        required: false
+        type: string
+        default: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
+      django-versions:
+        description: 'JSON array of Django versions to test (optional, for Django packages)'
+        required: false
+        type: string
+        default: ''
+      working-directory:
+        description: 'Working directory for the project'
+        required: false
+        type: string
+        default: '.'
+      skip-tests:
+        description: 'Skip test execution'
+        required: false
+        type: boolean
+        default: false
+      skip-lint:
+        description: 'Skip linting'
+        required: false
+        type: boolean
+        default: false
+      skip-security:
+        description: 'Skip security checks'
+        required: false
+        type: boolean
+        default: false
+      skip-build:
+        description: 'Skip package build validation'
+        required: false
+        type: boolean
+        default: false
+      coverage-threshold:
+        description: 'Minimum coverage percentage required'
+        required: false
+        type: number
+        default: 0
+
+# Cancel in-progress runs for the same workflow and branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip-lint }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort flake8 mypy
+
+      - name: Check code formatting with Black
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          black --check .
+
+      - name: Check import sorting with isort
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          isort --check-only .
+
+      - name: Lint with flake8
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Type check with mypy
+        working-directory: ${{ inputs.working-directory }}
+        continue-on-error: true
+        run: |
+          if pip list | grep -q django-stubs; then
+            pip install django-stubs
+          fi
+          mypy . || echo "MyPy found issues, but continuing..."
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip-security }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install package with dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev] 2>/dev/null || pip install -e .
+
+      - name: Run pip-audit for known vulnerabilities
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          pip install pip-audit
+          pip-audit || true
+
+      - name: Run safety check
+        working-directory: ${{ inputs.working-directory }}
+        continue-on-error: true
+        run: |
+          pip install safety
+          safety check --json || true
+
+      - name: Run bandit security linter
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          pip install bandit[toml]
+          bandit -r . -f json -c pyproject.toml || bandit -r . -f json || true
+
+  test:
+    name: Test (Python ${{ matrix.python-version }}${{ matrix.django-version && format(' / Django {0}', matrix.django-version) || '' }})
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip-tests }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ${{ fromJson(inputs.python-versions) }}
+        django-version: ${{ inputs.django-versions && fromJson(inputs.django-versions) || fromJson('[""]') }}
+        exclude:
+          # Django 5.0+ requires Python 3.10+
+          - python-version: '3.8'
+            django-version: '5.0'
+          - python-version: '3.9'
+            django-version: '5.0'
+          - python-version: '3.8'
+            django-version: '5.1'
+          - python-version: '3.9'
+            django-version: '5.1'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python -m pip install --upgrade pip
+
+          # Install Django version if specified
+          if [ -n "${{ matrix.django-version }}" ]; then
+            pip install "Django~=${{ matrix.django-version }}"
+          fi
+
+          # Install package with dev dependencies
+          pip install -e .[dev] 2>/dev/null || pip install -e .
+
+      - name: Run tests with coverage
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if pip list | grep -q pytest; then
+            if pip list | grep -q pytest-cov; then
+              pytest --cov --cov-report=xml --cov-report=term-missing
+            else
+              pytest
+            fi
+          else
+            python -m unittest discover
+          fi
+
+      - name: Check coverage threshold
+        if: ${{ inputs.coverage-threshold > 0 }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if pip list | grep -q coverage; then
+            coverage report --fail-under=${{ inputs.coverage-threshold }}
+          fi
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11' && (!matrix.django-version || matrix.django-version == '4.2')
+        uses: codecov/codecov-action@v4
+        with:
+          file: ${{ inputs.working-directory }}/coverage.xml
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip-build }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          python -m build
+
+      - name: Check package with twine
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: ${{ inputs.working-directory }}/dist/
+          retention-days: 7

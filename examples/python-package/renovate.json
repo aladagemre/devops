@@ -1,0 +1,7 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>aladagemre/devops//renovate/base",
+    "github>aladagemre/devops//renovate/python-package"
+  ]
+}

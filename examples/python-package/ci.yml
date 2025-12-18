@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: aladagemre/devops/.github/workflows/python-package-ci.yml@main
+    with:
+      # Test across multiple Python versions
+      python-versions: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
+
+      # For Django packages: test across multiple Django versions
+      django-versions: '["3.2", "4.0", "4.1", "4.2", "5.0"]'
+
+      # Optional: Set minimum coverage threshold
+      coverage-threshold: 80
+
+      # Optional: Skip certain steps
+      skip-tests: false
+      skip-lint: false
+      skip-security: false
+      skip-build: false

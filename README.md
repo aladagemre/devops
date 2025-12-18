@@ -15,21 +15,24 @@ This repository implements a **noise-reduction, efficiency-first** approach to D
 
 ```
 devops/
-├── renovate/           # Renovate configuration presets
-│   ├── base.json      # Shared settings (scheduling, stability, limits)
-│   ├── nextjs.json    # Next.js/React specific grouping
-│   ├── python.json    # Django/FastAPI grouping
-│   ├── expressjs.json # Express.js grouping
-│   ├── rust.json      # Rust dependencies
-│   └── go.json        # Go modules
-├── .github/workflows/  # Reusable GitHub Actions workflows
+├── renovate/                    # Renovate configuration presets
+│   ├── base.json               # Shared settings (scheduling, stability, limits)
+│   ├── nextjs.json             # Next.js/React specific grouping
+│   ├── python.json             # Django/FastAPI grouping
+│   ├── python-package.json     # Python packages/libraries
+│   ├── expressjs.json          # Express.js grouping
+│   ├── rust.json               # Rust dependencies
+│   └── go.json                 # Go modules
+├── .github/workflows/           # Reusable GitHub Actions workflows
 │   ├── nextjs-ci.yml
 │   ├── python-django-ci.yml
 │   ├── python-fastapi-ci.yml
+│   ├── python-package-ci.yml   # Python packages/libraries
+│   ├── python-package-publish.yml  # PyPI publishing
 │   ├── expressjs-ci.yml
 │   ├── rust-ci.yml
 │   └── go-ci.yml
-└── docs/              # Documentation
+└── docs/                        # Documentation
     ├── renovate-usage.md
     └── workflows-usage.md
 ```
@@ -74,6 +77,7 @@ jobs:
 - **TypeScript + Next.js/React** - Full build testing with clean install simulation
 - **Python Django** - Django-specific testing and checks
 - **Python FastAPI** - FastAPI testing with pytest
+- **Python Packages** - Reusable libraries with multi-version testing and PyPI publishing
 - **Express.js** - Node.js API testing
 - **Rust** - Cargo build and test with caching
 - **Go** - Go modules with build and test

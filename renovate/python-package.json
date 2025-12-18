@@ -1,0 +1,158 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Python package (library/reusable app) specific Renovate configuration",
+
+  "packageRules": [
+    {
+      "description": "Group Django core packages - important for Django packages",
+      "groupName": "Django core",
+      "matchPackageNames": [
+        "Django",
+        "django"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group Django extensions",
+      "groupName": "Django extensions",
+      "matchPackagePatterns": [
+        "^django-",
+        "^djangorestframework"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group testing packages - critical for libraries",
+      "groupName": "Python testing",
+      "matchPackageNames": [
+        "pytest",
+        "pytest-cov",
+        "pytest-django",
+        "pytest-asyncio",
+        "pytest-mock",
+        "coverage",
+        "tox"
+      ],
+      "matchPackagePatterns": [
+        "^pytest-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group linting and formatting tools",
+      "groupName": "Python linting",
+      "matchPackageNames": [
+        "black",
+        "flake8",
+        "pylint",
+        "mypy",
+        "ruff",
+        "isort",
+        "django-stubs",
+        "types-requests"
+      ],
+      "matchPackagePatterns": [
+        "^flake8-",
+        "^pylint-",
+        "^types-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group build and packaging tools",
+      "groupName": "Python packaging",
+      "matchPackageNames": [
+        "setuptools",
+        "wheel",
+        "build",
+        "twine",
+        "pip-tools",
+        "hatch",
+        "poetry"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group documentation tools",
+      "groupName": "Documentation",
+      "matchPackageNames": [
+        "sphinx",
+        "sphinx-rtd-theme",
+        "sphinx-autodoc-typehints",
+        "mkdocs",
+        "mkdocs-material"
+      ],
+      "matchPackagePatterns": [
+        "^sphinx-",
+        "^mkdocs-"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Group security scanning tools",
+      "groupName": "Security tools",
+      "matchPackageNames": [
+        "safety",
+        "bandit",
+        "pip-audit"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Pin Django major versions - test compatibility carefully",
+      "matchPackageNames": ["Django", "django"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "django", "needs-testing"]
+    },
+    {
+      "description": "Pin Python type checking major versions",
+      "matchPackageNames": ["mypy", "django-stubs"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "major-update", "type-checking"]
+    },
+    {
+      "description": "Separate PR for each Python version support change",
+      "matchPackageNames": ["python"],
+      "separateMajorMinor": true,
+      "separateMinorPatch": true,
+      "automerge": false,
+      "labels": ["dependencies", "python-version"]
+    }
+  ],
+
+  "pip_requirements": {
+    "fileMatch": [
+      "(^|/)requirements\\.txt$",
+      "(^|/)requirements[.-].*\\.txt$",
+      "(^|/)requirements/.*\\.txt$"
+    ]
+  },
+
+  "pip_setup": {
+    "fileMatch": [
+      "(^|/)setup\\.py$"
+    ]
+  },
+
+  "poetry": {
+    "fileMatch": [
+      "(^|/)pyproject\\.toml$"
+    ]
+  },
+
+  "pep621": {
+    "enabled": true,
+    "fileMatch": [
+      "(^|/)pyproject\\.toml$"
+    ]
+  }
+}
