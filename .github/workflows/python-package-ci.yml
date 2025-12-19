@@ -7,7 +7,7 @@ on:
         description: 'JSON array of Python versions to test'
         required: false
         type: string
-        default: '["3.11", "3.12"]'
+        default: '["3.12"]'
       django-versions:
         description: 'JSON array of Django versions to test (optional, for Django packages)'
         required: false
@@ -146,10 +146,6 @@ jobs:
       matrix:
         python-version: ${{ fromJson(inputs.python-versions) }}
         django-version: ${{ inputs.django-versions && fromJson(inputs.django-versions) || fromJson('[""]') }}
-        exclude:
-          # Django 6.0+ requires Python 3.12+
-          - python-version: '3.11'
-            django-version: '6.0'
 
     steps:
       - name: Checkout code
