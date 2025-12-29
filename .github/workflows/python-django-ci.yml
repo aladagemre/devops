@@ -87,24 +87,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ${{ inputs.requirements-file }}
 
-      - name: Run Black formatter check
+      - name: Run Ruff linting
         if: ${{ !inputs.skip-lint }}
         working-directory: ${{ inputs.working-directory }}
         run: |
-          if pip list | grep -q black; then
-            black --check .
+          if pip list | grep -q ruff; then
+            ruff check .
           else
-            echo "Black not installed, skipping format check"
+            echo "Ruff not installed, skipping lint check"
           fi
 
-      - name: Run Flake8 linting
+      - name: Run Ruff formatter check
         if: ${{ !inputs.skip-lint }}
         working-directory: ${{ inputs.working-directory }}
         run: |
-          if pip list | grep -q flake8; then
-            flake8 .
+          if pip list | grep -q ruff; then
+            ruff format --check .
           else
-            echo "Flake8 not installed, skipping lint check"
+            echo "Ruff not installed, skipping format check"
           fi
 
       - name: Run MyPy type checking

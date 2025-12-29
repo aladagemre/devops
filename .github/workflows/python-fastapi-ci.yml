@@ -80,16 +80,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r ${{ inputs.requirements-file }}
 
-      - name: Run Black formatter check
-        if: ${{ !inputs.skip-lint }}
-        working-directory: ${{ inputs.working-directory }}
-        run: |
-          if pip list | grep -q black; then
-            black --check .
-          else
-            echo "Black not installed, skipping format check"
-          fi
-
       - name: Run Ruff linting
         if: ${{ !inputs.skip-lint }}
         working-directory: ${{ inputs.working-directory }}
@@ -98,6 +88,16 @@ jobs:
             ruff check .
           else
             echo "Ruff not installed, skipping lint check"
+          fi
+
+      - name: Run Ruff formatter check
+        if: ${{ !inputs.skip-lint }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          if pip list | grep -q ruff; then
+            ruff format --check .
+          else
+            echo "Ruff not installed, skipping format check"
           fi
 
       - name: Run MyPy type checking
