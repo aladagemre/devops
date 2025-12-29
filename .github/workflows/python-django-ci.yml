@@ -13,8 +13,13 @@ on:
         required: false
         type: string
         default: '.'
+      package-manager:
+        description: 'Package manager to use (auto, pip, uv). Auto detects based on uv.lock presence.'
+        required: false
+        type: string
+        default: 'auto'
       requirements-file:
-        description: 'Path to requirements file'
+        description: 'Path to requirements file (used when package-manager is pip)'
         required: false
         type: string
         default: 'requirements.txt'
@@ -78,14 +83,34 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python-version }}
+
+      - name: Setup uv
+        if: inputs.package-manager == 'uv' || (inputs.package-manager == 'auto' && hashFiles(format('{0}/uv.lock', inputs.working-directory)) != '')
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: ${{ inputs.working-directory }}/uv.lock
+
+      - name: Setup pip cache
+        if: inputs.package-manager == 'pip' || (inputs.package-manager == 'auto' && hashFiles(format('{0}/uv.lock', inputs.working-directory)) == '')
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
           cache: 'pip'
           cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.requirements-file }}
 
       - name: Install dependencies
         working-directory: ${{ inputs.working-directory }}
         run: |
-          python -m pip install --upgrade pip
-          pip install -r ${{ inputs.requirements-file }}
+          if [[ "${{ inputs.package-manager }}" == "uv" ]] || \
+             ([[ "${{ inputs.package-manager }}" == "auto" ]] && [[ -f "uv.lock" ]]); then
+            echo "Installing dependencies with uv"
+            uv sync --frozen
+          else
+            echo "Installing dependencies with pip"
+            python -m pip install --upgrade pip
+            pip install -r ${{ inputs.requirements-file }}
+          fi
 
       - name: Run Ruff linting
         if: ${{ !inputs.skip-lint }}
@@ -163,23 +188,51 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python-version }}
+
+      - name: Setup uv
+        if: inputs.package-manager == 'uv' || (inputs.package-manager == 'auto' && hashFiles(format('{0}/uv.lock', inputs.working-directory)) != '')
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: ${{ inputs.working-directory }}/uv.lock
+
+      - name: Setup pip cache
+        if: inputs.package-manager == 'pip' || (inputs.package-manager == 'auto' && hashFiles(format('{0}/uv.lock', inputs.working-directory)) == '')
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
           cache: 'pip'
           cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.requirements-file }}
 
       - name: Install dependencies
         working-directory: ${{ inputs.working-directory }}
         run: |
-          python -m pip install --upgrade pip
-          pip install -r ${{ inputs.requirements-file }}
+          if [[ "${{ inputs.package-manager }}" == "uv" ]] || \
+             ([[ "${{ inputs.package-manager }}" == "auto" ]] && [[ -f "uv.lock" ]]); then
+            echo "Installing dependencies with uv"
+            uv sync --frozen
+          else
+            echo "Installing dependencies with pip"
+            python -m pip install --upgrade pip
+            pip install -r ${{ inputs.requirements-file }}
+          fi
 
       - name: Run safety check for known vulnerabilities
         working-directory: ${{ inputs.working-directory }}
         run: |
-          pip install safety
+          if command -v uv &> /dev/null; then
+            uv tool install safety
+          else
+            pip install safety
+          fi
           safety check --json || true
 
       - name: Run bandit security linter
         working-directory: ${{ inputs.working-directory }}
         run: |
-          pip install bandit
+          if command -v uv &> /dev/null; then
+            uv tool install bandit
+          else
+            pip install bandit
+          fi
           bandit -r . -f json || true

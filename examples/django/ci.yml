@@ -17,11 +17,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Example 1: Traditional pip with requirements.txt
   ci:
     uses: aladagemre/devops/.github/workflows/python-django-ci.yml@main
     with:
-      python-version: '3.11'
-      requirements-file: 'requirements.txt'
+      python-version: '3.12'
+      package-manager: 'pip'  # or 'auto' (default) to auto-detect
+      requirements-file: 'requirements.txt'  # or 'requirements/local.txt'
       skip-tests: false
       skip-lint: false
       skip-migrations-check: false
+
+  # Example 2: Modern uv with pyproject.toml (uncomment to use)
+  # ci:
+  #   uses: aladagemre/devops/.github/workflows/python-django-ci.yml@main
+  #   with:
+  #     python-version: '3.12'
+  #     package-manager: 'uv'  # or 'auto' to auto-detect based on uv.lock
+  #     skip-tests: false
+  #     skip-lint: false
+  #     skip-migrations-check: false
